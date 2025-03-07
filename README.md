@@ -1,6 +1,6 @@
 # AI Chatbot with User Authentication and Chat History
 
-![AI Chatbot Demo](https://via.placeholder.com/800x400.png?text=AI+Chatbot+Demo) <!-- Replace with an actual screenshot or GIF -->
+[AI Chatbot Demo](https://ai-chatbot-gilt-six.vercel.app)
 
 An AI-powered chatbot application that allows users to interact with a conversational AI model. The app features **user authentication** (login/signup), **chat history storage**, and a responsive user interface. Users can securely log in, start conversations, and view their chat history in a sidebar. The backend ensures data isolation, so each user can only access their own chat history.
 
