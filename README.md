@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# AI Chatbot with User Authentication and Chat History
+
+![AI Chatbot Demo](https://via.placeholder.com/800x400.png?text=AI+Chatbot+Demo) <!-- Replace with an actual screenshot or GIF -->
+
+An AI-powered chatbot application that allows users to interact with a conversational AI model. The app features **user authentication** (login/signup), **chat history storage**, and a responsive user interface. Users can securely log in, start conversations, and view their chat history in a sidebar. The backend ensures data isolation, so each user can only access their own chat history.
+
+---
+
+## Features
+
+- **User Authentication**: Secure login and signup with password hashing using **bcrypt**.
+- **Real-Time Chat**: Interact with an AI model to get responses to user queries.
+- **Chat History**: All conversations are stored in MongoDB and displayed in a sidebar.
+- **Protected Routes**: Only authenticated users can access the chat functionality.
+- **Responsive Design**: Seamless experience on both desktop and mobile devices.
+
+---
+
+## Tech Stack
+
+- **Frontend**: 
+  - **Next.js** (React framework for server-side rendering and routing)
+  - **Tailwind CSS** (Utility-first CSS framework for responsive design)
+  - **Axios** (HTTP client for API communication)
+- **Backend**:
+  - **FastAPI** (High-performance Python web framework for API endpoints)
+  - **MongoDB Atlas** (Cloud-based NoSQL database for scalable data storage)
+  - **JWT (JSON Web Tokens)** (Secure user authentication)
+  - **bcrypt** (Password hashing for secure authentication)
+- **AI Integration**:
+  - Conversational AI model (e.g., OpenAI GPT, Groq, or similar) for generating responses.
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js (for frontend)
+- Python 3.8+ (for backend)
+- MongoDB Atlas account (for database)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-username/ai-chatbot.git
+   cd ai-chatbot
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Set up the Frontend**:
+   ```bash
+   cd frontend
+   npm install
+   ```
 
-## Learn More
+3. **Set up the Backend**:
+   ```bash
+   cd ../backend
+   pip install -r requirements.txt
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. **Configure Environment Variables**:
+   
+   - Create a `.env` file in the backend directory:
+     ```env
+     MONGO_URI=your-mongodb-atlas-connection-string
+     SECRET_KEY=your-secret-key
+     ```
+   
+   - Create a `.env.local` file in the frontend directory:
+     ```env
+     NEXT_PUBLIC_API_URL=http://localhost:8000
+     ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. **Run the Backend**:
+   ```bash
+   uvicorn main:app --reload
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+6. **Run the Frontend**:
+   ```bash
+   cd ../frontend
+   npm run dev
+   ```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+7. **Access the App**:
+   - Open your browser and navigate to [http://localhost:3000](http://localhost:3000).
