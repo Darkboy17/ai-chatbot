@@ -70,7 +70,7 @@ An AI-powered chatbot application that allows users to interact with a conversat
    
    - Create a `.env.local` file in the frontend directory:
      ```env
-     NEXT_PUBLIC_API_URL=http://localhost:8000
+     NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
      ```
 
 5. **Run the Backend**:
