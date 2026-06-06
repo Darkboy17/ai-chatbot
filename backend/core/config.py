@@ -1,11 +1,14 @@
 import os
 from functools import lru_cache
+from pathlib import Path
 from typing import List
 
 from dotenv import load_dotenv
 
 
-load_dotenv()
+ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
+
+load_dotenv(dotenv_path=ENV_FILE, encoding="utf-8-sig")
 
 
 class Settings:
