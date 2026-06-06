@@ -9,7 +9,8 @@ export function usePersistentTheme() {
     const [hasLoadedTheme, setHasLoadedTheme] = useState(false);
 
     useEffect(() => {
-        setIsDarkMode(localStorage.getItem("theme") === "dark");
+        const savedTheme = localStorage.getItem("theme");
+        setIsDarkMode(savedTheme ? savedTheme === "dark" : false);
         setHasLoadedTheme(true);
     }, []);
 

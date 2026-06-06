@@ -38,14 +38,15 @@ const ProfileSection = ({ isOpen, isMobile, email, isDark = false, onStartTour }
     <>
       {/* Profile Section */}
       {(isOpen || !isMobile) && (
-        <div className={`profile absolute bottom-0 w-full border-t p-3 ${isDark ? "border-[#23314d] bg-[#111c31]" : "border-[#e6e9f0] bg-[#f1f4f9]"}`}>
-          <div className="flex items-center justify-between">
+        <div className={`profile absolute bottom-0 w-full border-t ${isOpen ? "p-3" : "px-2 py-3"} ${isDark ? "border-[#252d3a] bg-[#0f141d]" : "border-[#dce6ef] bg-[#eef3f8]"}`}>
+          <div className={`flex items-center ${isOpen ? "justify-between" : "justify-center"}`}>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className={`flex min-w-0 items-center gap-2 rounded-full px-2 py-2 text-left focus:outline-none focus:ring-2 ${isDark ? "hover:bg-[#17223a] focus:ring-[#3b5fa8]" : "hover:bg-white/80 focus:ring-[#b9cdfc]"}`}
+              className={`flex min-w-0 items-center rounded-2xl text-left focus:outline-none focus:ring-2 ${isOpen ? "gap-2 px-2 py-2" : "h-10 w-10 justify-center p-0"} ${isDark ? "hover:bg-[#171d27] focus:ring-[#41636a]" : "hover:bg-white focus:ring-[#b8d5db]"}`}
+              aria-label="Open profile"
             >
-              <FaUserCircle className={`h-8 w-8 flex-shrink-0 ${isDark ? "text-[#8fa2c9]" : "text-[#667085]"}`} />
-              {isOpen && <span className={`truncate text-sm font-semibold ${isDark ? "text-[#eef4ff]" : "text-[#101828]"}`}>My Profile</span>}
+              <FaUserCircle className={`h-8 w-8 flex-shrink-0 ${isDark ? "text-[#8997a8]" : "text-[#647187]"}`} />
+              {isOpen && <span className={`truncate text-sm font-medium ${isDark ? "text-[#eef3f8]" : "text-[#172033]"}`}>My Profile</span>}
             </button>
 
             {/* Settings */}
@@ -54,7 +55,7 @@ const ProfileSection = ({ isOpen, isMobile, email, isDark = false, onStartTour }
               {isOpen && (
                 <button
                   onClick={() => setShowSettings(true)}
-                  className={`rounded-full border px-3 py-2 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 ${isDark ? "border-[#2f3d5f] bg-[#17223a] text-[#dbe7ff] hover:bg-[#1f2d4b] focus:ring-[#3b5fa8]" : "border-[#d8e0ef] bg-white text-[#344054] hover:bg-[#f1f5ff] focus:ring-[#b9cdfc]"}`}
+                  className={`rounded-2xl border px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 ${isDark ? "border-[#2b3747] bg-[#171d27] text-[#eef3f8] hover:bg-[#202838] focus:ring-[#41636a]" : "border-[#dce6ef] bg-white text-[#263244] hover:bg-[#edf4f7] focus:ring-[#b8d5db]"}`}
                 >
                   Settings
                 </button>
@@ -73,8 +74,8 @@ const ProfileSection = ({ isOpen, isMobile, email, isDark = false, onStartTour }
 
           {/* Dropdown Menu */}
           {showDropdown && (
-            <div className={`absolute bottom-16 left-4 w-64 overflow-hidden rounded-3xl border shadow-xl ${isDark ? "border-[#2f3d5f] bg-[#111c31]" : "border-[#e6e9f0] bg-white"}`}>
-              <div className={`truncate p-3 text-sm font-semibold ${isDark ? "text-[#eef4ff]" : "text-[#101828]"}`}>{email}</div>
+            <div className={`absolute bottom-16 left-4 w-64 overflow-hidden rounded-2xl border shadow-xl ${isDark ? "border-[#2b3747] bg-[#171d27]" : "border-[#dce6ef] bg-white"}`}>
+              <div className={`truncate p-3 text-sm font-medium ${isDark ? "text-[#eef3f8]" : "text-[#172033]"}`}>{email}</div>
             </div>
           )}
         </div>

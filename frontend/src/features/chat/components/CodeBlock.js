@@ -37,35 +37,50 @@ export default function CodeBlock({ children, isDarkMode, language }) {
     };
 
     return (
-        <div className={`my-3 overflow-hidden rounded-[18px] border ${isDarkMode ? "border-[#2f3d5f] bg-[#111c31]" : "border-[#d8e0ef] bg-white"}`}>
-            <div className={`flex h-10 items-center justify-between border-b px-3 ${isDarkMode ? "border-[#2f3d5f] bg-[#0b1220]" : "border-[#e6e9f0] bg-[#f7f8fb]"}`}>
-                <span className={`text-xs font-semibold ${isDarkMode ? "text-[#8fa2c9]" : "text-[#667085]"}`}>
+        <div className={`my-3 w-full min-w-0 max-w-full overflow-hidden rounded-[18px] border ${isDarkMode ? "border-[#2b3747] bg-[#121820]" : "border-[#dce6ef] bg-white"}`}>
+            <div className={`flex h-10 items-center justify-between border-b px-3 ${isDarkMode ? "border-[#2b3747] bg-[#0f141d]" : "border-[#dce6ef] bg-[#eef3f8]"}`}>
+                <span className={`text-xs font-semibold ${isDarkMode ? "text-[#8997a8]" : "text-[#647187]"}`}>
                     {language || "code"}
                 </span>
                 <button
                     type="button"
                     onClick={copyCode}
-                    className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${isDarkMode ? "text-[#dbe7ff] hover:bg-[#17223a]" : "text-[#475467] hover:bg-[#eaf1ff]"}`}
+                    className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${isDarkMode ? "text-[#dce8ef] hover:bg-[#171d27]" : "text-[#647187] hover:bg-[#e8f3f4]"}`}
                     aria-label={copied ? "Code copied" : "Copy code"}
                     title={copied ? "Copied" : "Copy code"}
                 >
                     {copied ? <FaCheck className="h-3.5 w-3.5" /> : <FaCopy className="h-3.5 w-3.5" />}
                 </button>
             </div>
-            <SyntaxHighlighter
-                PreTag="div"
-                language={language || "text"}
-                style={isDarkMode ? oneDark : oneLight}
-                customStyle={{
-                    borderRadius: 0,
-                    margin: 0,
-                    padding: "16px",
-                    border: "0",
-                    background: "transparent"
-                }}
-            >
-                {code}
-            </SyntaxHighlighter>
+            <div className="w-full max-w-full overflow-x-auto">
+                <SyntaxHighlighter
+                    PreTag="div"
+                    language={language || "text"}
+                    style={isDarkMode ? oneDark : oneLight}
+                    customStyle={{
+                        borderRadius: 0,
+                        margin: 0,
+                        padding: "16px",
+                        border: "0",
+                        background: "transparent",
+                        minWidth: "max-content",
+                        overflowX: "visible"
+                    }}
+                    lineProps={{
+                        style: {
+                            whiteSpace: "pre"
+                        }
+                    }}
+                    codeTagProps={{
+                        style: {
+                            whiteSpace: "pre"
+                        }
+                    }}
+                    wrapLongLines={false}
+                >
+                    {code}
+                </SyntaxHighlighter>
+            </div>
         </div>
     );
 }

@@ -39,35 +39,32 @@ export default function Chatbot() {
     }
 
     const pageTheme = isDarkMode
-        ? "bg-[#0f172a] text-[#eef4ff]"
-        : "bg-[#f7f8fb] text-[#101828]";
+        ? "bg-[#10141c] text-[#eef3f8]"
+        : "bg-[#f8fafc] text-[#172033]";
     const headerTheme = isDarkMode
-        ? "border-[#23314d] bg-[#0f172a]/95"
-        : "border-[#e6e9f0] bg-[#f7f8fb]/95";
+        ? "border-[#252d3a] bg-[#10141c]/95"
+        : "border-transparent bg-[#f8fafc]/95";
     const subtleButtonTheme = isDarkMode
-        ? "border-[#2f3d5f] bg-[#17223a] text-[#dbe7ff] hover:bg-[#1f2d4b] focus:ring-[#3b5fa8]"
-        : "border-[#d8e0ef] bg-white text-[#344054] hover:bg-[#f1f5ff] focus:ring-[#b9cdfc]";
-    const chatAreaTheme = isDarkMode ? "bg-[#0f172a]" : "bg-[#f7f8fb]";
-    const assistantTextTheme = isDarkMode ? "text-[#dbe7ff]" : "text-[#1f2937]";
+        ? "border-[#2a3442] bg-[#171d27] text-[#eef3f8] hover:bg-[#202838] focus:ring-[#3f5561]"
+        : "border-[#dce6ef] bg-white text-[#263244] hover:bg-[#edf4f7] focus:ring-[#b8d5db]";
+    const chatAreaTheme = isDarkMode ? "bg-[#10141c]" : "bg-[#f8fafc]";
+    const assistantTextTheme = isDarkMode ? "text-[#eef3f8]" : "text-[#172033]";
     const userBubbleTheme = isDarkMode
-        ? "rounded-3xl bg-[#22365f] text-[#eef4ff] shadow-sm"
-        : "rounded-3xl bg-[#eaf1ff] text-[#101828] shadow-sm";
+        ? "rounded-[20px] bg-[#1f2a36] text-[#eef3f8]"
+        : "rounded-[20px] bg-[#e8f3f4] text-[#172033] shadow-sm ring-1 ring-[#d4e7ea]";
     const userEditBubbleTheme = isDarkMode
-        ? "rounded-3xl border border-[#2f3d5f] bg-[#111c31] text-[#eef4ff] shadow-sm"
-        : "rounded-3xl border border-[#d8e0ef] bg-white text-[#101828] shadow-sm";
+        ? "rounded-[24px] border border-[#2b3747] bg-[#171d27] text-[#eef3f8] shadow-[0_10px_30px_rgba(0,0,0,0.16)]"
+        : "rounded-[24px] border border-[#dce6ef] bg-[#f8fafc] text-[#172033] shadow-sm";
     const messageActionTheme = isDarkMode
-        ? "border-[#2f3d5f] bg-[#17223a] text-[#dbe7ff] hover:bg-[#1f2d4b]"
-        : "border-[#d8e0ef] bg-white text-[#475467] hover:bg-[#f1f5ff]";
-    const editTextAreaTheme = isDarkMode
-        ? "text-[#eef4ff] placeholder:text-[#7f8ca6]"
-        : "text-[#101828] placeholder:text-[#98a2b3]";
-    const composerWrapTheme = isDarkMode ? "bg-[#0f172a]" : "bg-[#f7f8fb]";
+        ? "border-[#2a3442] bg-[#171d27] text-[#c5d0dc] hover:bg-[#202838]"
+        : "border-[#dce6ef] bg-white text-[#647187] hover:bg-[#edf4f7]";
+    const composerWrapTheme = isDarkMode ? "bg-[#10141c]" : "bg-[#f8fafc]";
     const composerTheme = isDarkMode
-        ? "border-[#2f3d5f] bg-[#111c31] focus-within:border-[#6f95ff] focus-within:shadow-[0_18px_60px_rgba(79,124,255,0.2)]"
-        : "border-[#d8e0ef] bg-white focus-within:border-[#aac2ff] focus-within:shadow-[0_18px_60px_rgba(79,124,255,0.16)]";
+        ? "border-[#2b3747] bg-[#171d27] focus-within:border-[#41636a] focus-within:shadow-[0_18px_60px_rgba(0,0,0,0.28)]"
+        : "border-[#dce6ef] bg-white focus-within:border-[#9ecbd1] focus-within:shadow-[0_18px_48px_rgba(36,107,112,0.13)]";
     const inputTheme = isDarkMode
-        ? "text-[#eef4ff] placeholder:text-[#7f8ca6]"
-        : "text-[#101828] placeholder:text-[#98a2b3]";
+        ? "text-[#eef3f8] placeholder:text-[#8997a8]"
+        : "text-[#172033] placeholder:text-[#8390a2]";
 
     const handleLogout = () => {
         logout({ manual: true });
@@ -75,24 +72,24 @@ export default function Chatbot() {
     };
 
     return (
-        <div className={`flex h-screen overflow-hidden ${pageTheme}`}>
+        <div className={`flex h-screen w-full max-w-full overflow-hidden ${pageTheme}`}>
             <Sidebar
                 onConversationSelect={chat.loadConversation}
                 currentConversationId={chat.currentConversationId}
                 isDark={isDarkMode}
                 onStartTour={handleStartTour}
+                onNewChat={chat.resetChat}
                 refreshKey={chat.historyRefreshKey}
             />
 
-            <main className={`flex min-w-0 flex-1 ${chatAreaTheme}`}>
-                <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+            <main className={`flex w-0 min-w-0 flex-1 justify-center overflow-x-hidden ${chatAreaTheme}`}>
+                <div className="flex h-full w-full min-w-0 flex-col overflow-hidden">
                     {isTourEnabled && <TourGuide isOpen={true} onClose={handleTourClose} isDark={isDarkMode} />}
 
                     <ChatHeader
                         headerTheme={headerTheme}
                         isDarkMode={isDarkMode}
                         onLogoutClick={() => setShowLogoutConfirm(true)}
-                        onNewChat={chat.resetChat}
                         onToggleTheme={() => setIsDarkMode(prev => !prev)}
                         subtleButtonTheme={subtleButtonTheme}
                     />
@@ -102,7 +99,6 @@ export default function Chatbot() {
                         cancelEditingMessage={chat.cancelEditingMessage}
                         chatContainerRef={chat.chatContainerRef}
                         chatHistory={chat.chatHistory}
-                        editTextAreaTheme={editTextAreaTheme}
                         editingMessageContent={chat.editingMessageContent}
                         editingMessageIndex={chat.editingMessageIndex}
                         isDarkMode={isDarkMode}
@@ -113,9 +109,11 @@ export default function Chatbot() {
                         startEditingMessage={chat.startEditingMessage}
                         userBubbleTheme={userBubbleTheme}
                         userEditBubbleTheme={userEditBubbleTheme}
+                        onPromptSelect={(content) => chat.sendMessage({ content })}
                     />
 
                     <ChatComposer
+                        isDarkMode={isDarkMode}
                         loading={chat.loading}
                         onSend={(content) => chat.sendMessage({ content })}
                         composerWrapTheme={composerWrapTheme}

@@ -1,4 +1,4 @@
-import { FaBars, FaBrain, FaBriefcase, FaCalculator, FaCheck, FaCode, FaComment, FaDatabase, FaLightbulb, FaPalette, FaPen, FaSearch, FaTimes, FaTrash } from 'react-icons/fa';
+import { FaBars, FaBrain, FaBriefcase, FaCalculator, FaCheck, FaCode, FaComment, FaDatabase, FaLightbulb, FaPalette, FaPen, FaPlus, FaSearch, FaTimes, FaTrash } from 'react-icons/fa';
 import { getIconAndColor, groupConversationsByRecency } from '@/utils/chatUtils';
 import { deleteConversation, listConversations, updateConversationTitle } from '@/services/conversationApi';
 import closesvg from '../../../public/close.svg';
@@ -36,7 +36,7 @@ const ConversationIcon = ({ type }) => {
 /**
  * Renders saved chat history, title editing, deletion, and profile controls.
  */
-const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, onStartTour, refreshKey = 0 }) => {
+const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, onStartTour, onNewChat, refreshKey = 0 }) => {
     const [isOpen, setIsOpen] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
     const [conversations, setConversations] = useState([]);
@@ -65,15 +65,15 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
     const chatSections = groupConversationsByRecency(chatItems);
 
     const sidebarTheme = isDark
-        ? "border-[#23314d] bg-[#111c31] shadow-black/20"
-        : "border-[#e6e9f0] bg-[#f1f4f9] shadow-sm";
-    const headerTheme = isDark ? "border-[#23314d]" : "border-[#e6e9f0]";
-    const titleTheme = isDark ? "text-[#eef4ff]" : "text-[#101828]";
-    const mutedTheme = isDark ? "text-[#8fa2c9]" : "text-[#667085]";
-    const itemTheme = isDark ? "hover:bg-[#17223a]" : "hover:bg-white/80";
+        ? "border-[#252d3a] bg-[#0f141d] shadow-black/20"
+        : "border-[#dce6ef] bg-[#eef3f8] shadow-sm";
+    const headerTheme = isDark ? "border-[#252d3a]" : "border-[#dce6ef]";
+    const titleTheme = isDark ? "text-[#eef3f8]" : "text-[#172033]";
+    const mutedTheme = isDark ? "text-[#8997a8]" : "text-[#647187]";
+    const itemTheme = isDark ? "hover:bg-[#171d27]" : "hover:bg-white/80";
     const activeItemTheme = isDark
-        ? "bg-[#17223a] shadow-sm ring-1 ring-[#34538a]"
-        : "bg-white shadow-sm ring-1 ring-[#d8e6ff]";
+        ? "bg-[#171d27] shadow-sm ring-1 ring-[#2b3747]"
+        : "bg-white shadow-sm ring-1 ring-[#d4e7ea]";
 
     useEffect(() => {
         /**
@@ -237,7 +237,7 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
             {isMobile && (
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`fixed left-4 top-4 z-20 rounded-full border p-2 shadow-sm ${isDark ? "border-[#2f3d5f] bg-[#17223a] text-[#dbe7ff] hover:bg-[#1f2d4b]" : "border-[#d8e0ef] bg-white text-[#667085] hover:bg-[#f1f5ff]"}`}
+                    className={`fixed left-4 top-4 z-20 rounded-xl border p-2 shadow-sm ${isDark ? "border-[#2b3747] bg-[#171d27] text-[#eef3f8] hover:bg-[#202838]" : "border-[#dce6ef] bg-white text-[#263244] hover:bg-[#edf4f7]"}`}
                 >
                     <FaBars className="h-4 w-4" />
                 </button>
@@ -247,22 +247,21 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
                 fixed left-0 top-0 h-screen border-r ${sidebarTheme}
                 transition-all duration-300 ease-out z-10
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-                ${isOpen ? 'w-80' : 'w-0'}
+                ${isOpen ? 'w-72' : 'w-0'}
                 md:relative md:translate-x-0
-                ${isOpen ? 'md:w-80' : 'md:w-14'}
+                ${isOpen ? 'md:w-72' : 'md:w-14'}
             `}>
-                <div className={`flex items-center justify-between border-b px-4 py-3 ${headerTheme}`}>
+                <div className={`space-y-3 border-b px-3 py-3 ${headerTheme}`}>
+                    <div className="flex items-center justify-between">
                     <div className={`flex items-center ${isOpen ? "space-x-3" : "space-x-2"} `}>
                         {isOpen && (
                             <>
-                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#4f7cff] text-white shadow-sm">
+                                <div className={`flex h-9 w-9 items-center justify-center rounded-2xl ${isDark ? "bg-[#171d27] text-[#eef3f8]" : "bg-white text-[#246b70] shadow-sm"}`}>
                                     <FaComment className="h-4 w-4" />
                                 </div>
                                 <div>
                                     <span className={`block text-sm font-semibold ${titleTheme}`}>Your Chats</span>
-                                    <span className={`block text-xs font-medium ${mutedTheme}`}>
-                                        {totalCount === null ? `${chatItems.length} loaded` : `${chatItems.length} of ${totalCount} loaded`}
-                                    </span>
+                                    <span className={`block text-xs font-medium ${mutedTheme}`}>Conversation history</span>
                                 </div>
                             </>
                         )}
@@ -270,7 +269,7 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
 
                     {!isMobile && (
                         <div
-                            className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border shadow-sm ${isDark ? "border-[#2f3d5f] bg-[#17223a] hover:bg-[#1f2d4b]" : "border-[#d8e0ef] bg-white hover:bg-[#f1f5ff]"} ${isOpen ? '' : 'mx-auto'}`}
+                            className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border ${isDark ? "border-[#2b3747] bg-[#171d27] hover:bg-[#202838]" : "border-[#dce6ef] bg-white hover:bg-[#edf4f7]"} ${isOpen ? '' : 'mx-auto'}`}
                             onClick={() => setIsOpen(!isOpen)}
                         >
                             <Image
@@ -283,11 +282,23 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
                             />
                         </div>
                     )}
+                    </div>
+
+                    {isOpen && (
+                        <button
+                            type="button"
+                            onClick={onNewChat}
+                            className={`reset-chat flex h-10 w-full items-center justify-center gap-2 rounded-2xl border text-sm font-medium transition-colors focus:outline-none focus:ring-2 ${isDark ? "border-[#2b3747] bg-[#171d27] text-[#eef3f8] hover:bg-[#202838] focus:ring-[#41636a]" : "border-[#dce6ef] bg-white text-[#172033] hover:bg-[#f8fafc] focus:ring-[#b8d5db]"}`}
+                        >
+                            <FaPlus className="h-3.5 w-3.5" />
+                            New chat
+                        </button>
+                    )}
                 </div>
 
                 <div
                     className={`
-                        sidebar h-[calc(100vh-120px)] overflow-y-auto px-3 py-3
+                        sidebar h-[calc(100vh-144px)] overflow-y-auto px-2 py-3
                         transition-opacity duration-200
                         ${isOpen ? 'opacity-100' : 'opacity-0'}
                         ${isOpen ? 'block' : 'hidden'}
@@ -295,14 +306,14 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
                     onScroll={handleHistoryScroll}
                 >
                     {chatItems.length === 0 ? (
-                        <p className={`mt-4 rounded-2xl border border-dashed px-3 py-5 text-center text-sm ${isDark ? "border-[#2f3d5f] bg-[#17223a]/70 text-[#8fa2c9]" : "border-[#d8e0ef] bg-white/70 text-[#667085]"}`}>
+                        <p className={`mx-1 mt-4 rounded-2xl border border-dashed px-3 py-5 text-center text-sm ${isDark ? "border-[#2b3747] bg-[#171d27]/70 text-[#8997a8]" : "border-[#dce6ef] bg-white/70 text-[#647187]"}`}>
                             New chats will appear here.
                         </p>
                     ) : (
-                        <div className="space-y-5">
+                        <div className="space-y-4">
                             {chatSections.map(section => (
                                 <section key={section.label} className="space-y-1">
-                                    <div className={`px-2 pb-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${isDark ? "text-[#7186ad]" : "text-[#8a94a6]"}`}>
+                                    <div className={`px-2 pb-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${isDark ? "text-[#728091]" : "text-[#8390a2]"}`}>
                                         {section.label}
                                     </div>
                                     {section.items.map((chat, chatIndex) => {
@@ -311,7 +322,7 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
                                         return (
                                             <div
                                                 key={chat.conversation_id || chat._id || `${section.label}-${chatIndex}`}
-                                                className={`group cursor-pointer rounded-2xl px-3 py-3 transition-colors duration-150 ${itemTheme} ${currentConversationId === chat.conversation_id ? activeItemTheme : ''}`}
+                                                className={`group cursor-pointer rounded-2xl px-2.5 py-2.5 transition-colors duration-150 ${itemTheme} ${currentConversationId === chat.conversation_id ? activeItemTheme : ''}`}
                                                 onClick={() => {
                                                     if (!isEditingTitle) {
                                                         onConversationSelect(chat.conversation_id);
@@ -319,7 +330,7 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
                                                 }}
                                             >
                                                 <div className="flex items-start gap-3">
-                                                    <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${chat.color} shadow-sm`}>
+                                                    <div className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-xl border ${isDark ? "border-[#2b3747] bg-[#171d27] text-[#c5d0dc]" : "border-[#dce6ef] bg-white text-[#647187]"}`}>
                                                         <ConversationIcon type={chat.iconType} />
                                                     </div>
 
@@ -338,13 +349,13 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
                                                                             saveConversationTitle(chat.conversation_id);
                                                                         }
                                                                     }}
-                                                                    className={`w-full rounded-xl border px-3 py-2 text-sm font-semibold outline-none focus:ring-2 ${isDark ? "border-[#2f3d5f] bg-[#0f172a] text-[#eef4ff] focus:ring-[#3b5fa8]" : "border-[#d8e0ef] bg-white text-[#101828] focus:ring-[#b9cdfc]"}`}
+                                                                    className={`w-full rounded-xl border px-3 py-2 text-sm font-medium outline-none focus:ring-2 ${isDark ? "border-[#2b3747] bg-[#10141c] text-[#eef3f8] focus:ring-[#41636a]" : "border-[#dce6ef] bg-white text-[#172033] focus:ring-[#b8d5db]"}`}
                                                                     autoFocus
                                                                     disabled={savingTitleId === chat.conversation_id}
                                                                 />
                                                                 <div className="flex justify-end gap-2">
                                                                     <button
-                                                                        className={`inline-flex h-8 w-8 items-center justify-center rounded-full border ${isDark ? "border-[#2f3d5f] bg-[#17223a] text-[#dbe7ff] hover:bg-[#1f2d4b]" : "border-[#d8e0ef] bg-white text-[#475467] hover:bg-[#f1f5ff]"}`}
+                                                                        className={`inline-flex h-8 w-8 items-center justify-center rounded-xl border ${isDark ? "border-[#2b3747] bg-[#171d27] text-[#eef3f8] hover:bg-[#202838]" : "border-[#dce6ef] bg-white text-[#263244] hover:bg-[#edf4f7]"}`}
                                                                         onClick={cancelEditingTitle}
                                                                         disabled={savingTitleId === chat.conversation_id}
                                                                         aria-label="Cancel title edit"
@@ -353,7 +364,7 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
                                                                         <FaTimes className="h-3.5 w-3.5" />
                                                                     </button>
                                                                     <button
-                                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#4f7cff] text-white shadow-sm hover:bg-[#356dff] disabled:cursor-not-allowed disabled:opacity-50"
+                                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#246b70] text-white shadow-sm hover:bg-[#1d5b60] disabled:cursor-not-allowed disabled:opacity-50"
                                                                         onClick={() => saveConversationTitle(chat.conversation_id)}
                                                                         disabled={savingTitleId === chat.conversation_id}
                                                                         aria-label="Save title"
@@ -374,7 +385,7 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
                                                     {!isEditingTitle && (
                                                         <div className="flex flex-shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                                                             <button
-                                                                className={`rounded-full p-2 transition-colors ${isDark ? "text-[#8fa2c9] hover:bg-[#1f2d4b] hover:text-[#eef4ff]" : "text-[#98a2b3] hover:bg-[#f1f5ff] hover:text-[#344054]"}`}
+                                                                className={`rounded-xl p-2 transition-colors ${isDark ? "text-[#8997a8] hover:bg-[#202838] hover:text-[#eef3f8]" : "text-[#8390a2] hover:bg-[#edf4f7] hover:text-[#263244]"}`}
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     startEditingTitle(chat);
@@ -385,7 +396,7 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
                                                                 <FaPen className="h-3.5 w-3.5" />
                                                             </button>
                                                             <button
-                                                                className="rounded-full p-2 text-[#98a2b3] transition-colors hover:bg-red-50 hover:text-red-600"
+                                                                className="rounded-xl p-2 text-[#8390a2] transition-colors hover:bg-red-50 hover:text-red-600"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     setDeletingConversationId(chat.conversation_id);
@@ -401,12 +412,12 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
 
                                             {deletingConversationId === chat.conversation_id && (
                                                 <Portal>
-                                                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#101828]/45 px-4 backdrop-blur-sm">
-                                                        <div className={`w-full max-w-sm rounded-3xl border p-5 shadow-2xl ${isDark ? "border-[#2f3d5f] bg-[#111c31]" : "border-[#e6e9f0] bg-white"}`}>
+                                                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#000]/35 px-4 backdrop-blur-sm">
+                                                        <div className={`w-full max-w-sm rounded-2xl border p-5 shadow-2xl ${isDark ? "border-[#2b3747] bg-[#171d27]" : "border-[#dce6ef] bg-white"}`}>
                                                             <div className="mb-4 flex items-center justify-between">
                                                                 <h3 className={`text-base font-semibold ${titleTheme}`}>Delete Conversation</h3>
                                                                 <button
-                                                                    className="rounded-full p-2 text-[#98a2b3] hover:bg-[#f2f4f7] hover:text-[#101828]"
+                                                                    className={`rounded-xl p-2 ${isDark ? "text-[#8997a8] hover:bg-[#202838] hover:text-[#eef3f8]" : "text-[#8390a2] hover:bg-[#edf4f7] hover:text-[#172033]"}`}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         setDeletingConversationId(null);
@@ -418,7 +429,7 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
                                                             <p className={`text-sm leading-6 ${mutedTheme}`}>Are you sure you want to delete this conversation?</p>
                                                             <div className="mt-4 flex justify-end gap-2">
                                                                 <button
-                                                                    className="rounded-full border border-[#d8e0ef] bg-white px-4 py-2 text-sm font-semibold text-[#344054] hover:bg-[#f2f4f7]"
+                                                                    className="rounded-xl border border-[#dce6ef] bg-white px-4 py-2 text-sm font-medium text-[#263244] hover:bg-[#edf4f7]"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         setDeletingConversationId(null);
@@ -427,7 +438,7 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
                                                                     Cancel
                                                                 </button>
                                                                 <button
-                                                                    className="rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"
+                                                                    className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500"
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         handleDeleteConversation(chat.conversation_id);
@@ -449,13 +460,13 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
                     )}
 
                     {isLoadingConversations && (
-                        <div className="px-3 py-4 text-center text-xs font-medium text-[#667085]">
+                        <div className="px-3 py-4 text-center text-xs font-medium text-[#8e8ea0]">
                             Loading more chats...
                         </div>
                     )}
 
                     {!hasMore && conversations.length > 0 && (
-                        <div className="px-3 py-4 text-center text-xs font-medium text-[#98a2b3]">
+                        <div className="px-3 py-4 text-center text-xs font-medium text-[#8e8ea0]">
                             You reached the end.
                         </div>
                     )}
@@ -479,7 +490,7 @@ const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, 
                                 className="cursor-pointer px-2 py-1"
                                 title={chat.title}
                             >
-                                <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full ${chat.color} shadow-sm transition-transform duration-150 hover:scale-105`}>
+                                <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-xl border shadow-sm transition-transform duration-150 hover:scale-105 ${isDark ? "border-[#2b3747] bg-[#171d27] text-[#c5d0dc]" : "border-[#dce6ef] bg-white text-[#647187]"}`}>
                                     <ConversationIcon type={chat.iconType} />
                                 </div>
                             </div>

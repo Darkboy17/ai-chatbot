@@ -24,24 +24,24 @@ function getMarkdownComponents(isDarkMode) {
         li: ({ node, ...props }) => <li className="pl-1" {...props} />,
         blockquote: ({ node, ...props }) => (
             <blockquote
-                className={`my-3 border-l-4 pl-4 italic ${isDarkMode ? "border-[#4f7cff] text-[#b7c8ea]" : "border-[#aac2ff] text-[#475467]"}`}
+                className={`my-3 border-l-4 pl-4 italic ${isDarkMode ? "border-[#41636a] text-[#c5d0dc]" : "border-[#9ecbd1] text-[#4e6074]"}`}
                 {...props}
             />
         ),
-        hr: () => <hr className={`my-5 ${isDarkMode ? "border-[#2f3d5f]" : "border-[#d8e0ef]"}`} />,
+        hr: () => <hr className={`my-5 ${isDarkMode ? "border-[#2b3747]" : "border-[#dce6ef]"}`} />,
         table: ({ node, ...props }) => (
-            <div className="my-4 overflow-x-auto">
-                <table className={`w-full border-collapse text-left text-sm ${isDarkMode ? "border-[#2f3d5f]" : "border-[#d8e0ef]"}`} {...props} />
+            <div className="my-4 w-full max-w-full overflow-x-auto">
+                <table className={`w-full min-w-max border-collapse text-left text-sm ${isDarkMode ? "border-[#2b3747]" : "border-[#dce6ef]"}`} {...props} />
             </div>
         ),
         th: ({ node, ...props }) => (
-            <th className={`border px-3 py-2 font-semibold ${isDarkMode ? "border-[#2f3d5f] bg-[#17223a]" : "border-[#d8e0ef] bg-[#f7f8fb]"}`} {...props} />
+            <th className={`border px-3 py-2 font-semibold ${isDarkMode ? "border-[#2b3747] bg-[#171d27]" : "border-[#dce6ef] bg-[#eef3f8]"}`} {...props} />
         ),
         td: ({ node, ...props }) => (
-            <td className={`border px-3 py-2 align-top ${isDarkMode ? "border-[#2f3d5f]" : "border-[#d8e0ef]"}`} {...props} />
+            <td className={`border px-3 py-2 align-top ${isDarkMode ? "border-[#2b3747]" : "border-[#dce6ef]"}`} {...props} />
         ),
         a: ({ node, ...props }) => (
-            <a className="text-[#356dff] underline underline-offset-2 hover:text-[#1f55d6]" target="_blank" rel="noreferrer" {...props} />
+            <a className="text-[#246b70] underline underline-offset-2 hover:text-[#1d5b60]" target="_blank" rel="noreferrer" {...props} />
         ),
         code: ({ node, inline, className, children, ...props }) => {
             const match = /language-(\w+)/.exec(className || "");
@@ -57,14 +57,14 @@ function getMarkdownComponents(isDarkMode) {
 
             return (
                 <code
-                    className={`rounded px-1.5 py-0.5 ${isDarkMode ? "bg-[#17223a] text-[#eef4ff]" : "bg-[#eef3ff] text-[#101828]"}`}
+                    className={`rounded px-1.5 py-0.5 ${isDarkMode ? "bg-[#171d27] text-[#eef3f8]" : "bg-[#e8f3f4] text-[#172033]"}`}
                     {...props}
                 >
                     {children}
                 </code>
             );
         },
-        pre: ({ node, ...props }) => <pre className="overflow-x-auto" {...props} />
+        pre: ({ node, ...props }) => <pre className="w-full max-w-full overflow-x-auto" {...props} />
     };
 }
 
@@ -74,7 +74,7 @@ function getMarkdownComponents(isDarkMode) {
  */
 export default function MarkdownMessage({ content, isDarkMode }) {
     return (
-        <div className="prose prose-sm max-w-full break-words">
+        <div className="prose prose-sm w-full min-w-0 max-w-full break-words">
             <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
