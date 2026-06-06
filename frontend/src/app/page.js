@@ -6,24 +6,31 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 
+/**
+ * Renders the landing route and one-time logout/session toasts.
+ */
 export default function Home() {
-  const isMounted = useRef(false); // Track initial mount
+  const isMounted = useRef(false);
 
   useEffect(() => {
-    if (isMounted.current) return; // Skip if already mounted
-    isMounted.current = true; // Mark as mounted
+    if (isMounted.current) return;
+    isMounted.current = true;
 
-    const token = localStorage.getItem("token");
-    const hasLoggedInOnce = localStorage.getItem("hasLoggedInOnce");
-    if (!token && hasLoggedInOnce) {
-      toast("You are logged out since the session has expired. Please re-login.");
+    if (localStorage.getItem("sessionExpired") === "true") {
+      toast.warning("You are logged out since the session has expired. Please re-login.");
+      localStorage.removeItem("sessionExpired");
+    }
+
+    if (localStorage.getItem("manualLogout") === "true") {
+      toast.info("You are logged out.");
+      localStorage.removeItem("manualLogout");
     }
   }, []);
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#f7f8fb] text-[#101828]">
       <LandingPage />
-      <ToastContainer />
+      <ToastContainer position="top-center" newestOnTop />
     </div>
   );
 }

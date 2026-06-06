@@ -1,67 +1,63 @@
 "use client";
 
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import axios from "axios";
+import { signupUser } from "@/services/authApi";
 
 
-const Signup = ({ onSwitch }) => {
+/**
+ * Renders the signup form and switches back to login after success.
+ */
+const Signup = ({ onSwitch, isDark = false }) => {
 
-  // State variables for email and password and routing pages
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
 
-  // API URL
-  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-  // Function to handle signup
+  /**
+   * Creates an account through the backend auth service.
+   */
   const handleSignup = async () => {
     try {
-      const response = await axios.post(API_URL + "/signup", {
-        email: email, // Ensure this matches the backend's expected field name
-        password: password, // Ensure this matches the backend's expected field name
+      await signupUser({
+        email,
+        password,
       });
 
-      // Show success toast
-      toast.success("Signup successful! Logging in automatically...");
-
-      // Navigate to the login page after a short delay
-      setTimeout(() => {
-        router.push("/");
-      }, 5000);
+      toast.success("Account created. Please log in.");
+      onSwitch();
     } catch (error) {
-      // Show error toast
       toast.error(error.response?.data?.detail || error.message);
     }
   };
 
   return (
-    <div className="min-h-auto flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="flex items-center justify-center px-2 py-6">
+      <div className="w-full max-w-md space-y-6">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Signup</h2>
+          <h2 className={`text-2xl font-semibold ${isDark ? "text-[#eef4ff]" : "text-[#101828]"}`}>Create your workspace</h2>
+          <p className={`mt-2 text-sm leading-6 ${isDark ? "text-[#8fa2c9]" : "text-[#667085]"}`}>Set up an account to save chats and reopen previous work.</p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={(e) => e.preventDefault()}>
-          <div className="rounded-md shadow-sm -space-y-px">
+        <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <div className="space-y-3">
             <div>
+              <label className={`mb-1.5 block text-xs font-semibold ${isDark ? "text-[#c8d7f2]" : "text-[#344054]"}`}>Email</label>
               <input
                 type="email"
-                placeholder="Email"
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={`relative block w-full rounded-2xl border px-3 py-2.5 text-sm placeholder:text-[#98a2b3] focus:border-[#aac2ff] focus:outline-none focus:ring-4 focus:ring-[#4f7cff]/10 ${isDark ? "border-[#2f3d5f] bg-[#17223a] text-[#eef4ff]" : "border-[#d8e0ef] bg-[#f7f8fb] text-[#101828]"}`}
               />
             </div>
             <div>
+              <label className={`mb-1.5 block text-xs font-semibold ${isDark ? "text-[#c8d7f2]" : "text-[#344054]"}`}>Password</label>
               <input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={`relative block w-full rounded-2xl border px-3 py-2.5 text-sm placeholder:text-[#98a2b3] focus:border-[#aac2ff] focus:outline-none focus:ring-4 focus:ring-[#4f7cff]/10 ${isDark ? "border-[#2f3d5f] bg-[#17223a] text-[#eef4ff]" : "border-[#d8e0ef] bg-[#f7f8fb] text-[#101828]"}`}
               />
             </div>
           </div>
@@ -69,23 +65,22 @@ const Signup = ({ onSwitch }) => {
           <div>
             <button
               onClick={handleSignup}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="group relative flex w-full justify-center rounded-full border border-[#4f7cff] bg-[#4f7cff] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#4f7cff]/10 hover:bg-[#356dff] focus:outline-none focus:ring-4 focus:ring-[#4f7cff]/20"
             >
-              Signup
+              Create account
             </button>
           </div>
         </form>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className={`text-center text-sm ${isDark ? "text-[#8fa2c9]" : "text-[#667085]"}`}>
           Already have an account?{" "}
           <button
             onClick={onSwitch}
-            className="font-medium text-indigo-600 hover:text-indigo-500"
+            className="font-semibold text-[#356dff] hover:text-[#1f55d6]"
           >
             Login
           </button>
         </p>
       </div>
-      <ToastContainer />
     </div>
   );
 };

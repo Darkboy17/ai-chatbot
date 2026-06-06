@@ -1,42 +1,84 @@
-import { FaComment, FaBars, FaTrash, FaTimes } from 'react-icons/fa';
-import { groupConversationsByDate } from '../utils/chatUtils';
-import closesvg from '../../../public/close.svg'
-import opensvg from '../../../public/open.svg'
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from 'react';
+import { FaBars, FaBrain, FaBriefcase, FaCalculator, FaCheck, FaCode, FaComment, FaDatabase, FaLightbulb, FaPalette, FaPen, FaSearch, FaTimes, FaTrash } from 'react-icons/fa';
+import { getIconAndColor, groupConversationsByRecency } from '@/utils/chatUtils';
+import { deleteConversation, listConversations, updateConversationTitle } from '@/services/conversationApi';
+import closesvg from '../../../public/close.svg';
+import opensvg from '../../../public/open.svg';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ProfileSection from './Profile';
 import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 import Image from 'next/image';
 import Portal from './Portal';
 
+const PAGE_SIZE = 25;
 
+const conversationIconComponents = {
+    business: FaBriefcase,
+    chat: FaComment,
+    code: FaCode,
+    database: FaDatabase,
+    design: FaPalette,
+    idea: FaLightbulb,
+    math: FaCalculator,
+    research: FaSearch,
+    writing: FaPen
+};
 
+/**
+ * Resolves the icon component for a sidebar conversation category.
+ */
+const ConversationIcon = ({ type }) => {
+    const Icon = conversationIconComponents[type] || FaBrain;
 
-const Sidebar = ({ onConversationSelect, currentConversationId }) => {
+    return <Icon className="h-3.5 w-3.5" />;
+};
 
-    // Initialize useRouter
-    const router = useRouter();
-
+/**
+ * Renders saved chat history, title editing, deletion, and profile controls.
+ */
+const Sidebar = ({ onConversationSelect, currentConversationId, isDark = false, onStartTour, refreshKey = 0 }) => {
     const [isOpen, setIsOpen] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
-    const [chats, setChats] = useState([]);
+    const [conversations, setConversations] = useState([]);
+    const [nextSkip, setNextSkip] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [totalCount, setTotalCount] = useState(null);
+    const [isLoadingConversations, setIsLoadingConversations] = useState(false);
     const [deletingConversationId, setDeletingConversationId] = useState(null);
-    const [collapsedSections, setCollapsedSections] = useState({});
+    const [editingConversationId, setEditingConversationId] = useState(null);
+    const [editingTitle, setEditingTitle] = useState('');
+    const [savingTitleId, setSavingTitleId] = useState(null);
+    const isLoadingConversationsRef = useRef(false);
+    const hasMoreRef = useRef(true);
+    const nextSkipRef = useRef(0);
 
-
-    // Load the backend API URL from the .env file
-    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-    // Get the email from the token
     const token = localStorage.getItem("token");
     const decoded = jwtDecode(token);
     const email = decoded.sub;
 
+    const chatItems = [...conversations]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .map(conversation => ({
+            ...conversation,
+            ...getIconAndColor(conversation)
+        }));
+    const chatSections = groupConversationsByRecency(chatItems);
 
-    // Check for mobile screen size
+    const sidebarTheme = isDark
+        ? "border-[#23314d] bg-[#111c31] shadow-black/20"
+        : "border-[#e6e9f0] bg-[#f1f4f9] shadow-sm";
+    const headerTheme = isDark ? "border-[#23314d]" : "border-[#e6e9f0]";
+    const titleTheme = isDark ? "text-[#eef4ff]" : "text-[#101828]";
+    const mutedTheme = isDark ? "text-[#8fa2c9]" : "text-[#667085]";
+    const itemTheme = isDark ? "hover:bg-[#17223a]" : "hover:bg-white/80";
+    const activeItemTheme = isDark
+        ? "bg-[#17223a] shadow-sm ring-1 ring-[#34538a]"
+        : "bg-white shadow-sm ring-1 ring-[#d8e6ff]";
+
     useEffect(() => {
-
+        /**
+         * Tracks mobile layout and default collapsed state.
+         */
         const checkScreenSize = () => {
             setIsMobile(window.innerWidth < 768);
             if (window.innerWidth < 768) {
@@ -50,368 +92,410 @@ const Sidebar = ({ onConversationSelect, currentConversationId }) => {
         return () => window.removeEventListener('resize', checkScreenSize);
     }, []);
 
-    // Fetch conversations from the API
     useEffect(() => {
+        isLoadingConversationsRef.current = isLoadingConversations;
+        hasMoreRef.current = hasMore;
+        nextSkipRef.current = nextSkip;
+    }, [hasMore, isLoadingConversations, nextSkip]);
 
-        const fetchConversations = async () => {
+    /**
+     * Loads the next page of conversations and merges it with current state.
+     */
+    const fetchConversations = useCallback(async ({ reset = false } = {}) => {
+        if (isLoadingConversationsRef.current) return;
+        if (!reset && !hasMoreRef.current) return;
 
-            try {
+        try {
+            isLoadingConversationsRef.current = true;
+            setIsLoadingConversations(true);
 
-                const token = localStorage.getItem('token');
+            const skip = reset ? 0 : nextSkipRef.current;
+            const data = await listConversations({ skip, limit: PAGE_SIZE });
+            const items = Array.isArray(data) ? data : data.items || [];
+            const nextTotal = Array.isArray(data) ? null : data.total;
 
-                const response = await fetch(`${API_URL}/conversations`, {
+            setConversations(prev => {
+                const merged = reset ? items : [...prev, ...items];
+                const unique = new Map();
 
-                    headers: {
-
-                        'Authorization': `Bearer ${token}`
-
-                    }
-
+                merged.forEach((conversation, index) => {
+                    const key = conversation.conversation_id || conversation._id || `${conversation.created_at}-${conversation.title}-${index}`;
+                    unique.set(key, conversation);
                 });
 
+                return Array.from(unique.values());
+            });
+            const nextSkipValue = Array.isArray(data) ? skip + items.length : data.next_skip;
+            const hasMoreValue = Array.isArray(data) ? items.length === PAGE_SIZE : data.has_more;
 
-                if (!response.ok) {
+            nextSkipRef.current = nextSkipValue;
+            hasMoreRef.current = hasMoreValue;
+            setNextSkip(nextSkipValue);
+            setHasMore(hasMoreValue);
+            setTotalCount(nextTotal);
 
-                    throw new Error('Failed to fetch conversations');
+        } catch (error) {
+            console.error('Error fetching conversations:', error);
+        } finally {
+            isLoadingConversationsRef.current = false;
+            setIsLoadingConversations(false);
+        }
+    }, []);
 
-                }
+    useEffect(() => {
+        nextSkipRef.current = 0;
+        hasMoreRef.current = true;
+        setConversations([]);
+        setNextSkip(0);
+        setHasMore(true);
+        setTotalCount(null);
+        fetchConversations({ reset: true });
+    }, [fetchConversations, refreshKey]);
 
+    /**
+     * Requests more history when the scroll position nears the bottom.
+     */
+    const handleHistoryScroll = (event) => {
+        const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+        const isNearBottom = scrollHeight - scrollTop - clientHeight < 120;
 
-                const conversations = await response.json();
-
-                const groupedChats = groupConversationsByDate(conversations);
-
-                setChats(groupedChats);
-
-            } catch (error) {
-
-                console.error('Error fetching conversations:', error);
-
-            }
-
-        };
-
-
-        fetchConversations();
-
-    }, [currentConversationId]);
-
-    // Handle logout
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        router.push("/");
+        if (isNearBottom) {
+            fetchConversations();
+        }
     };
 
-    // Toggle collapse for a section
-    const toggleSectionCollapse = (index) => {
-        setCollapsedSections((prev) => ({
-            ...prev,
-            [index]: !prev[index], // Toggle the collapsed state for the section
-        }));
-    };
-
-    // Handle conversation deletion
+    /**
+     * Deletes a conversation after confirmation and removes it locally.
+     */
     const handleDeleteConversation = async (conversationId) => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/conversations/${conversationId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+            await deleteConversation(conversationId);
 
-            if (!response.ok) {
-                throw new Error('Failed to delete conversation');
-            }
-
-            // Remove deleted conversation from state
-            setChats(prevChats =>
-                prevChats.map(section => ({
-                    ...section,
-                    items: section.items.filter(chat => chat.conversation_id !== conversationId)
-                })).filter(section => section.items.length > 0) // Remove empty sections
+            setConversations(prevConversations =>
+                prevConversations.filter(chat => chat.conversation_id !== conversationId)
             );
             toast.success('Conversation deleted successfully');
         } catch (error) {
             console.error('Error deleting conversation:', error);
             toast.error('Failed to delete conversation');
         } finally {
-            setDeletingConversationId(null); // Reset the deleting state
+            setDeletingConversationId(null);
+        }
+    };
+
+    /**
+     * Opens inline editing for a conversation title.
+     */
+    const startEditingTitle = (conversation) => {
+        setEditingConversationId(conversation.conversation_id);
+        setEditingTitle(conversation.title || '');
+    };
+
+    /**
+     * Closes inline title editing and discards draft text.
+     */
+    const cancelEditingTitle = () => {
+        setEditingConversationId(null);
+        setEditingTitle('');
+    };
+
+    /**
+     * Persists a custom conversation title to the backend.
+     */
+    const saveConversationTitle = async (conversationId) => {
+        const nextTitle = editingTitle.trim();
+
+        if (!nextTitle) {
+            toast.error('Please enter a title');
+            return;
+        }
+
+        try {
+            setSavingTitleId(conversationId);
+
+            const data = await updateConversationTitle(conversationId, nextTitle);
+
+            setConversations(prevConversations => (
+                prevConversations.map(conversation => (
+                    conversation.conversation_id === conversationId
+                        ? { ...conversation, title: data.title || nextTitle, is_title_custom: true }
+                        : conversation
+                ))
+            ));
+            cancelEditingTitle();
+            toast.success('Chat title updated');
+        } catch (error) {
+            console.error('Error updating conversation title:', error);
+            toast.error('Failed to update title');
+        } finally {
+            setSavingTitleId(null);
         }
     };
 
     return (
-
         <>
-
-            {/* Mobile Menu Button */}
             {isMobile && (
-
                 <button
-
                     onClick={() => setIsOpen(!isOpen)}
-
-                    className="fixed top-3 left-4 z-20 p-2 rounded-md bg-gray-100 hover:bg-gray-200"
-
+                    className={`fixed left-4 top-4 z-20 rounded-full border p-2 shadow-sm ${isDark ? "border-[#2f3d5f] bg-[#17223a] text-[#dbe7ff] hover:bg-[#1f2d4b]" : "border-[#d8e0ef] bg-white text-[#667085] hover:bg-[#f1f5ff]"}`}
                 >
-
-                    <FaBars className="text-gray-600" />
-
+                    <FaBars className="h-4 w-4" />
                 </button>
-
             )}
 
-
-            {/* Sidebar */}
             <div className={`
-
-                fixed left-0 top-0 h-screen bg-gray-50 shadow-lg
-
-                transition-all duration-300 ease-in-out z-10
-
+                fixed left-0 top-0 h-screen border-r ${sidebarTheme}
+                transition-all duration-300 ease-out z-10
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-
                 ${isOpen ? 'w-80' : 'w-0'}
-
                 md:relative md:translate-x-0
-
                 ${isOpen ? 'md:w-80' : 'md:w-14'}
-
             `}>
-
-                {/* Header */}
-                <div className="flex justify-between items-center px-4 py-4 border-b">
-
-                    <div className={`flex items-center  ${isOpen ? "space-x-8" : "space-x-2"} `}>
-
-                        {/* Only show FaComment when sidebar is open */}
+                <div className={`flex items-center justify-between border-b px-4 py-3 ${headerTheme}`}>
+                    <div className={`flex items-center ${isOpen ? "space-x-3" : "space-x-2"} `}>
                         {isOpen && (
-
                             <>
-
-                                <FaComment className="text-gray-600" />
-
-                                <span className='font-large'>Your Chats</span>
-
+                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#4f7cff] text-white shadow-sm">
+                                    <FaComment className="h-4 w-4" />
+                                </div>
+                                <div>
+                                    <span className={`block text-sm font-semibold ${titleTheme}`}>Your Chats</span>
+                                    <span className={`block text-xs font-medium ${mutedTheme}`}>
+                                        {totalCount === null ? `${chatItems.length} loaded` : `${chatItems.length} of ${totalCount} loaded`}
+                                    </span>
+                                </div>
                             </>
-
                         )}
-
                     </div>
 
-                    {/* Sidebar Toggle Button */}
-                    {!isMobile && <div className={`cursor-pointer ${isOpen ? '' : 'mx-auto'}`}
-
-                        onClick={() => setIsOpen(!isOpen)}>
-                        {isOpen ? (
+                    {!isMobile && (
+                        <div
+                            className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border shadow-sm ${isDark ? "border-[#2f3d5f] bg-[#17223a] hover:bg-[#1f2d4b]" : "border-[#d8e0ef] bg-white hover:bg-[#f1f5ff]"} ${isOpen ? '' : 'mx-auto'}`}
+                            onClick={() => setIsOpen(!isOpen)}
+                        >
                             <Image
-                                src={closesvg}
-                                alt="Sidebar Close SVG"
+                                src={isOpen ? closesvg : opensvg}
+                                alt={isOpen ? "Close sidebar" : "Open sidebar"}
                                 width={20}
                                 height={20}
-                                className="object-contain filter grayscale" // Apply grayscale filter                                             
+                                className="h-4 w-4 object-contain opacity-60"
                                 priority
                             />
-                        ) : (
-                            <Image
-                                src={opensvg}
-                                alt="Sidebar Open SVG"
-                                width={20}
-                                height={20}
-                                className="object-contain filter grayscale" // Apply grayscale filter
-                                priority
-                            />
-                        )}
-                    </div>}
-
+                        </div>
+                    )}
                 </div>
 
-                {/* Chat List - Only visible when sidebar is open */}
-                <div className={`
+                <div
+                    className={`
+                        sidebar h-[calc(100vh-120px)] overflow-y-auto px-3 py-3
+                        transition-opacity duration-200
+                        ${isOpen ? 'opacity-100' : 'opacity-0'}
+                        ${isOpen ? 'block' : 'hidden'}
+                    `}
+                    onScroll={handleHistoryScroll}
+                >
+                    {chatItems.length === 0 ? (
+                        <p className={`mt-4 rounded-2xl border border-dashed px-3 py-5 text-center text-sm ${isDark ? "border-[#2f3d5f] bg-[#17223a]/70 text-[#8fa2c9]" : "border-[#d8e0ef] bg-white/70 text-[#667085]"}`}>
+                            New chats will appear here.
+                        </p>
+                    ) : (
+                        <div className="space-y-5">
+                            {chatSections.map(section => (
+                                <section key={section.label} className="space-y-1">
+                                    <div className={`px-2 pb-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${isDark ? "text-[#7186ad]" : "text-[#8a94a6]"}`}>
+                                        {section.label}
+                                    </div>
+                                    {section.items.map((chat, chatIndex) => {
+                                        const isEditingTitle = editingConversationId === chat.conversation_id;
 
-                    sidebar overflow-y-auto h-[calc(100vh-120px)]
-
-                    transition-opacity duration-200
-
-                    ${isOpen ? 'opacity-100' : 'opacity-0'}
-
-                    ${isOpen ? 'block' : 'hidden'}
-
-                `}>
-
-                    {chats.length === 0 ? <p className='text-center text-gray-400 mt-4'>
-                        New chats will appear here.
-                    </p> : chats.map((section, index) => (
-
-                        <div key={index} className="mb-1">
-
-                            {/* Section Header */}
-                            <div className="px-4 py-2 flex items-center justify-between bg-gray-100 rounded-b-md shadow-md"
-                                onClick={() => toggleSectionCollapse(index)}>
-
-                                <span className="text-sm text-gray-600">{section.section}</span>
-
-                                <span className="text-gray-400 text-sm transform transition-transform">
-                                    {collapsedSections[index] ? '▼' : '▲'} {/* Rotate arrow based on collapse state */}
-                                </span>
-                            </div>
-
-
-                            {/* Chat Items (Conditionally Rendered) */}
-                            {!collapsedSections[index] && ( // Only render if section is not collapsed
-                                section.items.map((chat, chatIndex) => (
-                                    <div
-                                        key={chatIndex}
-                                        className={`group px-4 py-2 hover:bg-gray-100 cursor-pointer ${currentConversationId === chat.conversation_id ? 'bg-blue-50' : ''
-                                            }`}
-                                        onClick={() => onConversationSelect(chat.conversation_id)}
-                                    >
-                                        <div className="flex items-start space-x-3">
-                                            {/* Icon and Color */}
+                                        return (
                                             <div
-                                                className={`w-8 h-8 rounded-full ${chat.color} flex items-center justify-center flex-shrink-0`}
-                                            >
-                                                <span className="text-sm">{chat.icon}</span>
-                                            </div>
-
-                                            {/* Title and Description */}
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="text-sm font-medium text-gray-900 truncate">{chat.title}</h3>
-                                                <p className="text-sm text-gray-500 truncate">{chat.description}</p>
-                                            </div>
-
-                                            {/* Delete Button (Visible on Hover) */}
-                                            <button
-                                                className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 p-3 rounded-full transition-opacity"
-                                                onClick={(e) => {
-                                                    e.stopPropagation(); // Prevent the parent onClick from firing
-                                                    setDeletingConversationId(chat.conversation_id); // Set the conversation to delete
+                                                key={chat.conversation_id || chat._id || `${section.label}-${chatIndex}`}
+                                                className={`group cursor-pointer rounded-2xl px-3 py-3 transition-colors duration-150 ${itemTheme} ${currentConversationId === chat.conversation_id ? activeItemTheme : ''}`}
+                                                onClick={() => {
+                                                    if (!isEditingTitle) {
+                                                        onConversationSelect(chat.conversation_id);
+                                                    }
                                                 }}
                                             >
-                                                <FaTrash className="w-4 h-4" />
-                                            </button>
-                                        </div>
+                                                <div className="flex items-start gap-3">
+                                                    <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${chat.color} shadow-sm`}>
+                                                        <ConversationIcon type={chat.iconType} />
+                                                    </div>
 
-                                        {/* Confirmation UI (Displayed when deletingConversationId matches) */}
-                                        {deletingConversationId === chat.conversation_id && (
-                                            <Portal>
-                                                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                                                    <div className="bg-white p-6 rounded-lg shadow-lg">
-                                                        <div className="flex justify-between items-center mb-4">
-                                                            <h3 className="text-lg font-semibold">Delete Conversation</h3>
+                                                    <div className="min-w-0 flex-1">
+                                                        {isEditingTitle ? (
+                                                            <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                                                                <input
+                                                                    value={editingTitle}
+                                                                    onChange={(e) => setEditingTitle(e.target.value)}
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === 'Escape') {
+                                                                            cancelEditingTitle();
+                                                                        }
+
+                                                                        if (e.key === 'Enter') {
+                                                                            saveConversationTitle(chat.conversation_id);
+                                                                        }
+                                                                    }}
+                                                                    className={`w-full rounded-xl border px-3 py-2 text-sm font-semibold outline-none focus:ring-2 ${isDark ? "border-[#2f3d5f] bg-[#0f172a] text-[#eef4ff] focus:ring-[#3b5fa8]" : "border-[#d8e0ef] bg-white text-[#101828] focus:ring-[#b9cdfc]"}`}
+                                                                    autoFocus
+                                                                    disabled={savingTitleId === chat.conversation_id}
+                                                                />
+                                                                <div className="flex justify-end gap-2">
+                                                                    <button
+                                                                        className={`inline-flex h-8 w-8 items-center justify-center rounded-full border ${isDark ? "border-[#2f3d5f] bg-[#17223a] text-[#dbe7ff] hover:bg-[#1f2d4b]" : "border-[#d8e0ef] bg-white text-[#475467] hover:bg-[#f1f5ff]"}`}
+                                                                        onClick={cancelEditingTitle}
+                                                                        disabled={savingTitleId === chat.conversation_id}
+                                                                        aria-label="Cancel title edit"
+                                                                        title="Cancel"
+                                                                    >
+                                                                        <FaTimes className="h-3.5 w-3.5" />
+                                                                    </button>
+                                                                    <button
+                                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#4f7cff] text-white shadow-sm hover:bg-[#356dff] disabled:cursor-not-allowed disabled:opacity-50"
+                                                                        onClick={() => saveConversationTitle(chat.conversation_id)}
+                                                                        disabled={savingTitleId === chat.conversation_id}
+                                                                        aria-label="Save title"
+                                                                        title="Save"
+                                                                    >
+                                                                        <FaCheck className="h-3.5 w-3.5" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <h3 className={`truncate text-sm font-semibold ${titleTheme}`}>{chat.title}</h3>
+                                                                <p className={`truncate text-xs leading-5 ${mutedTheme}`}>{chat.description}</p>
+                                                            </>
+                                                        )}
+                                                    </div>
+
+                                                    {!isEditingTitle && (
+                                                        <div className="flex flex-shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                                                             <button
-                                                                className="text-gray-500 hover:text-gray-700"
+                                                                className={`rounded-full p-2 transition-colors ${isDark ? "text-[#8fa2c9] hover:bg-[#1f2d4b] hover:text-[#eef4ff]" : "text-[#98a2b3] hover:bg-[#f1f5ff] hover:text-[#344054]"}`}
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    setDeletingConversationId(null); // Close the confirmation UI
+                                                                    startEditingTitle(chat);
                                                                 }}
+                                                                aria-label="Edit chat title"
+                                                                title="Edit title"
                                                             >
-                                                                <FaTimes className="w-5 h-5" />
+                                                                <FaPen className="h-3.5 w-3.5" />
+                                                            </button>
+                                                            <button
+                                                                className="rounded-full p-2 text-[#98a2b3] transition-colors hover:bg-red-50 hover:text-red-600"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setDeletingConversationId(chat.conversation_id);
+                                                                }}
+                                                                aria-label="Delete conversation"
+                                                                title="Delete"
+                                                            >
+                                                                <FaTrash className="h-3.5 w-3.5" />
                                                             </button>
                                                         </div>
-                                                        <p>Are you sure you want to delete this conversation?</p>
-                                                        <div className="flex justify-end gap-2 mt-4">
-                                                            <button
-                                                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setDeletingConversationId(null); // Close the confirmation UI
-                                                                }}
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                            <button
-                                                                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleDeleteConversation(chat.conversation_id); // Confirm deletion
-                                                                }}
-                                                            >
-                                                                Delete
-                                                            </button>
+                                                    )}
+                                                </div>
+
+                                            {deletingConversationId === chat.conversation_id && (
+                                                <Portal>
+                                                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#101828]/45 px-4 backdrop-blur-sm">
+                                                        <div className={`w-full max-w-sm rounded-3xl border p-5 shadow-2xl ${isDark ? "border-[#2f3d5f] bg-[#111c31]" : "border-[#e6e9f0] bg-white"}`}>
+                                                            <div className="mb-4 flex items-center justify-between">
+                                                                <h3 className={`text-base font-semibold ${titleTheme}`}>Delete Conversation</h3>
+                                                                <button
+                                                                    className="rounded-full p-2 text-[#98a2b3] hover:bg-[#f2f4f7] hover:text-[#101828]"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setDeletingConversationId(null);
+                                                                    }}
+                                                                >
+                                                                    <FaTimes className="w-5 h-5" />
+                                                                </button>
+                                                            </div>
+                                                            <p className={`text-sm leading-6 ${mutedTheme}`}>Are you sure you want to delete this conversation?</p>
+                                                            <div className="mt-4 flex justify-end gap-2">
+                                                                <button
+                                                                    className="rounded-full border border-[#d8e0ef] bg-white px-4 py-2 text-sm font-semibold text-[#344054] hover:bg-[#f2f4f7]"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setDeletingConversationId(null);
+                                                                    }}
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                                <button
+                                                                    className="rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteConversation(chat.conversation_id);
+                                                                    }}
+                                                                >
+                                                                    Delete
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </Portal>
-
-                                        )}
-                                    </div>
-                                ))
-                            )}
-
+                                                </Portal>
+                                            )}
+                                        </div>
+                                    );
+                                    })}
+                                </section>
+                            ))}
                         </div>
+                    )}
 
-                    ))}
+                    {isLoadingConversations && (
+                        <div className="px-3 py-4 text-center text-xs font-medium text-[#667085]">
+                            Loading more chats...
+                        </div>
+                    )}
 
+                    {!hasMore && conversations.length > 0 && (
+                        <div className="px-3 py-4 text-center text-xs font-medium text-[#98a2b3]">
+                            You reached the end.
+                        </div>
+                    )}
                 </div>
 
-                {/* Profile Section  */}
                 <div className='profile flex items-center justify-center'>
                     <ProfileSection
                         isOpen={isOpen}
                         isMobile={isMobile}
                         email={email}
-                        handleLogout={() => handleLogout()}
+                        isDark={isDark}
+                        onStartTour={onStartTour}
                     />
                 </div>
 
-                {/* Collapsed View - Only visible when sidebar is collapsed on desktop */}
-
                 {!isOpen && !isMobile && (
-
-                    <div className="py-4">
-
-                        {chats.map((section) => (
-
-                            section.items.map((chat, index) => (
-
-                                <div
-
-                                    key={index}
-
-                                    className="px-2 py-2 hover:bg-gray-100 cursor-pointer"
-
-                                    title={chat.title}
-
-                                >
-
-                                    <div className={`w-8 h-8 rounded-full ${chat.color} flex items-center justify-center mx-auto`}>
-
-                                        <span className="text-sm">{chat.icon}</span>
-
-                                    </div>
-
+                    <div className="space-y-2 py-4">
+                        {chatItems.map((chat, index) => (
+                            <div
+                                key={chat.conversation_id || chat._id || index}
+                                className="cursor-pointer px-2 py-1"
+                                title={chat.title}
+                            >
+                                <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full ${chat.color} shadow-sm transition-transform duration-150 hover:scale-105`}>
+                                    <ConversationIcon type={chat.iconType} />
                                 </div>
-
-                            ))
-
+                            </div>
                         ))}
-
                     </div>
-
                 )}
-
             </div>
 
-
-            {/* Overlay for mobile */}
             {isMobile && isOpen && (
-
                 <div
-
-                    className="fixed inset-0 bg-black bg-opacity-50 z-0"
-
+                    className="fixed inset-0 z-0 bg-[#101828]/45 backdrop-blur-sm"
                     onClick={() => setIsOpen(false)}
-
                 />
-
             )}
-
         </>
-
     );
-
 };
 
 export default Sidebar;

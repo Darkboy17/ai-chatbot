@@ -1,10 +1,9 @@
-import { FaUserCircle, FaSignOutAlt, FaTimes } from 'react-icons/fa';
+import { FaUserCircle } from 'react-icons/fa';
 import Settings from './Settings';
 import { useState } from 'react';
-import Portal from './Portal';
 
 
-const ProfileSection = ({ isOpen, isMobile, email, handleLogout }) => {
+const ProfileSection = ({ isOpen, isMobile, email, isDark = false, onStartTour }) => {
 
   // State to control dropdown visibility
   const [showDropdown, setShowDropdown] = useState(false);
@@ -12,54 +11,41 @@ const ProfileSection = ({ isOpen, isMobile, email, handleLogout }) => {
   // State to control settings visibility
   const [showSettings, setShowSettings] = useState(false);
 
-  // State to control logout confirmation modal
-  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
-
   // State to manage tour toggle
   const [isTourEnabled, setIsTourEnabled] = useState(() => {
     // Load the default state from localStorage
-    const savedTourState = localStorage.getItem('isTourEnabled') || 'true';
+    const savedTourState = localStorage.getItem('isTourEnabled') || 'false';
     return savedTourState === 'true';
   });
 
   // Toggle tour on/off
   const toggleTour = () => {
+    const nextTourState = !isTourEnabled;
 
-    setIsTourEnabled((prev) => !prev);
+    setIsTourEnabled(nextTourState);
 
     // Save the preference to localStorage or send it to the backend
-    localStorage.setItem('isTourEnabled', (!isTourEnabled).toString());
+    localStorage.setItem('isTourEnabled', nextTourState.toString());
 
-  };
+    if (nextTourState) {
+      setShowSettings(false);
+      onStartTour?.();
+    }
 
-  // Handle logout confirmation
-  const confirmLogout = () => {
-    setShowLogoutConfirmation(true);
-  };
-
-  // Handle logout cancellation
-  const cancelLogout = () => {
-    setShowLogoutConfirmation(false);
-  };
-
-  // Handle logout confirmation
-  const proceedWithLogout = () => {
-    setShowLogoutConfirmation(false);
-    handleLogout();
   };
 
   return (
     <>
       {/* Profile Section */}
       {(isOpen || !isMobile) && (
-        <div className="profile absolute bottom-0 w-full bg-gray-200 border-t p-4">
+        <div className={`profile absolute bottom-0 w-full border-t p-3 ${isDark ? "border-[#23314d] bg-[#111c31]" : "border-[#e6e9f0] bg-[#f1f4f9]"}`}>
           <div className="flex items-center justify-between">
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center space-x-2 focus:outline-none"
+              className={`flex min-w-0 items-center gap-2 rounded-full px-2 py-2 text-left focus:outline-none focus:ring-2 ${isDark ? "hover:bg-[#17223a] focus:ring-[#3b5fa8]" : "hover:bg-white/80 focus:ring-[#b9cdfc]"}`}
             >
-              <FaUserCircle className="text-gray-600 w-8 h-8" />
-              {isOpen && <span className="text-sm font-medium text-gray-700">My Profile</span>}
+              <FaUserCircle className={`h-8 w-8 flex-shrink-0 ${isDark ? "text-[#8fa2c9]" : "text-[#667085]"}`} />
+              {isOpen && <span className={`truncate text-sm font-semibold ${isDark ? "text-[#eef4ff]" : "text-[#101828]"}`}>My Profile</span>}
             </button>
 
             {/* Settings */}
@@ -68,7 +54,7 @@ const ProfileSection = ({ isOpen, isMobile, email, handleLogout }) => {
               {isOpen && (
                 <button
                   onClick={() => setShowSettings(true)}
-                  className="p-2 bg-gray-300 text-gray-600 hover:text-gray-800 shadow-lg focus:outline-none"
+                  className={`rounded-full border px-3 py-2 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 ${isDark ? "border-[#2f3d5f] bg-[#17223a] text-[#dbe7ff] hover:bg-[#1f2d4b] focus:ring-[#3b5fa8]" : "border-[#d8e0ef] bg-white text-[#344054] hover:bg-[#f1f5ff] focus:ring-[#b9cdfc]"}`}
                 >
                   Settings
                 </button>
@@ -80,60 +66,18 @@ const ProfileSection = ({ isOpen, isMobile, email, handleLogout }) => {
                 onClose={() => setShowSettings(false)}
                 isTourEnabled={isTourEnabled}
                 toggleTour={toggleTour}
+                isDark={isDark}
               />
             </div>
           </div>
 
           {/* Dropdown Menu */}
           {showDropdown && (
-            <div className="absolute bottom-16 left-4 w-auto bg-white rounded-md shadow-lg">
-              <div className="p-3 text-gray-600 border-b text-sm font-bold">{email}</div>
-              <button
-                onClick={confirmLogout} // Show the logout confirmation modal
-                className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-              >
-                <FaSignOutAlt className="mr-2 w-auto" /> Logout
-              </button>
+            <div className={`absolute bottom-16 left-4 w-64 overflow-hidden rounded-3xl border shadow-xl ${isDark ? "border-[#2f3d5f] bg-[#111c31]" : "border-[#e6e9f0] bg-white"}`}>
+              <div className={`truncate p-3 text-sm font-semibold ${isDark ? "text-[#eef4ff]" : "text-[#101828]"}`}>{email}</div>
             </div>
           )}
         </div>
-      )}
-
-      {/* Logout Confirmation Modal (Rendered via Portal) */}
-      {showLogoutConfirmation && (
-        <Portal>
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Confirm Logout</h3>
-                <button
-                  onClick={cancelLogout} // Close the confirmation modal
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <FaTimes className="w-5 h-5" />
-                </button>
-              </div>
-
-              <p className="text-sm text-gray-700">Are you sure you want to log out?</p>
-
-              {/* Confirmation Buttons */}
-              <div className="flex justify-end gap-2 mt-6">
-                <button
-                  onClick={cancelLogout} // Cancel logout
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={proceedWithLogout} // Proceed with logout
-                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          </div>
-        </Portal>
       )}
 
     </>

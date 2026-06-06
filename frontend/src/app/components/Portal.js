@@ -1,18 +1,17 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+/**
+ * Mounts children into the shared portal root after client hydration.
+ */
 export default function Portal({ children }) {
-    
-    // State to keep track of whether the component is mounted
     const [mounted, setMounted] = useState(false);
 
-    // Set mounted to true after the component mounts
     useEffect(() => {
-        setMounted(true); // Set mounted to true after the component mounts
-        return () => setMounted(false); // Cleanup on unmount
+        setMounted(true);
+        return () => setMounted(false);
     }, []);
 
-    // Render the children into a portal if mounted
     return mounted
         ? createPortal(children, document.getElementById('portal-root'))
         : null;
