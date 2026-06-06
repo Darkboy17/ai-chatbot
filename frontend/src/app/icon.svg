@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AI Chatbot">
+  <defs>
+    <linearGradient id="bg" x1="12" y1="8" x2="52" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#172033"/>
+      <stop offset="1" stop-color="#10141c"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="18" y1="14" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9ecbd1"/>
+      <stop offset="1" stop-color="#246b70"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#bg)"/>
+  <path d="M19 26c0-6.1 4.9-11 11-11h8c6.1 0 11 4.9 11 11v6.5c0 6.1-4.9 11-11 11h-5.9L23.8 50v-6.6A10.9 10.9 0 0 1 19 34.5V26Z" fill="#eef7f8"/>
+  <path d="M23.8 50v-6.6A10.9 10.9 0 0 1 19 34.5V26c0-6.1 4.9-11 11-11h8c6.1 0 11 4.9 11 11v6.5c0 6.1-4.9 11-11 11h-5.9L23.8 50Z" fill="none" stroke="url(#accent)" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="29" cy="30" r="3" fill="#246b70"/>
+  <circle cx="39" cy="30" r="3" fill="#246b70"/>
+  <path d="M33.8 21.4 35.4 25l3.9 1.2-3.9 1.3-1.6 3.5-1.6-3.5-3.9-1.3 3.9-1.2 1.6-3.6Z" fill="#10141c"/>
+</svg>
