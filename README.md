@@ -1,6 +1,6 @@
 # AI Chatbot
 
-[Live demo](https://ai-chatbot-gilt-six.vercel.app)
+[Live demo](https://ai-chatbot-eosin-three-35.vercel.app)
 
 AI Chatbot is a full-stack conversational web app with account-based access, streamed model responses, persisted chat history, editable prompts, and a responsive Next.js interface. The frontend is built with Next.js and Tailwind CSS, while the backend is a FastAPI service that authenticates users with JWTs, stores accounts and conversations in MongoDB, and calls Groq for chat completions.
 
